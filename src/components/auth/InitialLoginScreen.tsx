@@ -37,7 +37,7 @@ export const InitialLoginScreen: React.FC<InitialLoginScreenProps> = ({ onLoginS
     } catch (err) {
       setErrorMsg('구글 로그인에 실패했습니다. 익명 로그인을 이용해보세요.');
       console.error(err);
-    } fontally: {
+    } finally {
       setLoading(false);
     }
   };
