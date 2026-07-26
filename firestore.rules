@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 초등학교 공간지각 학습 게임 오픈 규칙 (읽기/쓰기 차단 제외 설정)
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
