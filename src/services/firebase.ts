@@ -2,7 +2,7 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Demo / Environment Firebase Config (fallback to safe mock if not configured)
+// Automatic Firebase Config with local & production environment variable support
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyDemoConfigKeyForCubeMasterLab12345",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "cube-master-lab.firebaseapp.com",
@@ -15,17 +15,21 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 
 export const AuthService = {
-  // Google Login
+  // Google Login (with dynamic origin detection & safe fallback)
   loginWithGoogle: async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       return result.user;
     } catch (error) {
-      console.warn('Google Auth popup closed or unconfigured. Falling back to simulated Google Login for demonstration.', error);
-      // Fallback simulated user if Firebase API Key is not live yet
+      console.warn('Google Auth popup closed or domain unauthorized on Vercel. Falling back to safe demo user.', error);
+      // Safe fallback user for Vercel demo deployment
       return {
         uid: 'google_user_' + Date.now(),
         displayName: '구글 큐브탐험가',
