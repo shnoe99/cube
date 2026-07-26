@@ -1,0 +1,172 @@
+/* ==========================================================================
+   전개도 탐험! 초등학교 6학년 수학 퀴즈 - Main Design System
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Outfit:wght@600;800&display=swap');
+
+:root {
+  /* Color Tokens (요구사항 고정 색상 팔레트) */
+  --primary: #4F8EF7;
+  --primary-hover: #3b76dc;
+  --primary-light: #eef4ff;
+  --secondary: #FFD54F;
+  --secondary-hover: #fbc02d;
+  --background: #F7FAFC;
+  --card-bg: #FFFFFF;
+  --success: #4CAF50;
+  --wrong: #F44336;
+
+  /* Neutral Colors */
+  --text-main: #2D3748;
+  --text-muted: #718096;
+  --text-light: #A0AEC0;
+  --border-color: #E2E8F0;
+  
+  /* Shadows & Effects */
+  --shadow-sm: 0 2px 6px rgba(79, 142, 247, 0.08);
+  --shadow-md: 0 10px 25px -5px rgba(79, 142, 247, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 20px 35px -10px rgba(79, 142, 247, 0.2);
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --radius-full: 9999px;
+
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reset & Global Base */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px 16px 40px 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(79, 142, 247, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255, 213, 79, 0.08) 0%, transparent 40%);
+}
+
+/* Main App Shell Container */
+.app-container {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Header Bar & Sound Toggle */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 8px;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--card-bg);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--primary);
+  border: 1.5px solid rgba(79, 142, 247, 0.2);
+}
+
+.btn-icon-sound {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border-color);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  font-size: 20px;
+}
+
+.btn-icon-sound:hover {
+  transform: scale(1.08);
+  border-color: var(--primary);
+}
+
+/* Page Container & Animations */
+.page-view {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  position: relative;
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+
+.page-view.hidden {
+  display: none !important;
+}
+
+/* Page Transition Effects */
+.fade-in {
+  animation: pageFadeIn 0.35s ease-out forwards;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Typography Helpers */
+h1, h2, h3, h4 {
+  color: var(--text-main);
+  line-height: 1.35;
+}
+
+/* Confetti Overlay Canvas */
+.confetti-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Media Queries for Mobile Responsiveness */
+@media (max-width: 576px) {
+  body {
+    padding: 12px 10px 30px 10px;
+  }
+
+  .page-view {
+    padding: 24px 20px;
+    border-radius: var(--radius-md);
+  }
+}

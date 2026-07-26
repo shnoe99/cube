@@ -1,0 +1,788 @@
+/* ==========================================================================
+   전개도 탐험! 초등학교 6학년 수학 퀴즈 - Components CSS
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Main Page Components
+   -------------------------------------------------------------------------- */
+.main-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.main-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.main-title .box-icon {
+  font-size: 38px;
+  animation: floatBounce 3s ease-in-out infinite;
+}
+
+@keyframes floatBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(4deg); }
+}
+
+.main-badge {
+  display: inline-block;
+  background-color: var(--secondary);
+  color: #5D4037;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+}
+
+.info-card {
+  background-color: var(--primary-light);
+  border: 2px dashed rgba(79, 142, 247, 0.4);
+  border-radius: var(--radius-md);
+  padding: 24px 20px;
+  margin-bottom: 32px;
+}
+
+.info-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.info-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Big Action Button (시작하기) */
+.btn-container {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-primary-lg {
+  background: linear-gradient(135deg, var(--primary) 0%, #3B82F6 100%);
+  color: #FFFFFF;
+  border: none;
+  padding: 18px 48px;
+  font-size: 22px;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(79, 142, 247, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: all var(--transition-fast);
+  width: 100%;
+  max-width: 320px;
+  justify-content: center;
+}
+
+.btn-primary-lg:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 14px 28px rgba(79, 142, 247, 0.45);
+}
+
+.btn-primary-lg:active {
+  transform: translateY(1px);
+}
+
+/* --------------------------------------------------------------------------
+   2. Quiz Screen Components
+   -------------------------------------------------------------------------- */
+.quiz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.progress-text {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.progress-bar-track {
+  flex: 1;
+  height: 14px;
+  background-color: #EDF2F7;
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar-inner {
+  height: 100%;
+  width: 20%;
+  background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
+  border-radius: var(--radius-full);
+  transition: width 0.4s ease-out;
+}
+
+/* Net Image / Visual Area */
+.net-visual-wrapper {
+  background-color: #F8FAFC;
+  border: 2px solid #E2E8F0;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+}
+
+.net-svg-container {
+  width: 100%;
+  max-width: 420px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.net-svg-container.hidden {
+  display: none !important;
+}
+
+.net-controls {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.btn-fold-toggle {
+  background-color: var(--card-bg);
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-fold-toggle:hover, .btn-fold-toggle.active {
+  background-color: var(--primary);
+  color: #FFFFFF;
+}
+
+/* 3D Stage CSS Transforms */
+.net-3d-stage {
+  width: 100%;
+  height: 240px;
+  perspective: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.net-3d-stage.hidden {
+  display: none !important;
+}
+
+.cube-3d-scene {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(-20deg) rotateY(35deg);
+  transition: transform 0.5s ease;
+}
+
+.shape-3d {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+.face-3d {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border: 2px solid var(--primary);
+  background: rgba(79, 142, 247, 0.25);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #1A365D;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 3D Folding Transform States */
+.face-base  { transform: translateZ(-50px); }
+.face-front { transform: rotateY(0deg) translateZ(50px); transform-origin: center; }
+.face-back  { transform: rotateY(180deg) translateZ(50px); transform-origin: center; }
+.face-left  { transform: rotateY(-90deg) translateZ(50px); transform-origin: center; }
+.face-right { transform: rotateY(90deg) translateZ(50px); transform-origin: center; }
+.face-top   { transform: rotateX(90deg) translateZ(50px); transform-origin: center; }
+
+.hint-3d-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  font-weight: 500;
+}
+
+/* Question Title */
+.question-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+/* Choices Radio List (4지선다) */
+.choices-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.choice-card {
+  background-color: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+  position: relative;
+}
+
+.choice-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.choice-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2.5px solid #CBD5E0;
+  background-color: #FFFFFF;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.choice-card:hover {
+  border-color: #BEE3F8;
+  background-color: #F7FAFC;
+}
+
+/* Selected State (파란색 강조 - 요구사항) */
+.choice-card.selected {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+  box-shadow: 0 4px 12px rgba(79, 142, 247, 0.15);
+}
+
+.choice-card.selected .choice-indicator {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.choice-card.selected .choice-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+}
+
+.choice-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.choice-card.selected .choice-text {
+  color: var(--primary);
+}
+
+/* Quiz Navigation Bottom Buttons */
+.quiz-nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-secondary {
+  background-color: #EDF2F7;
+  color: var(--text-main);
+  border: none;
+  padding: 14px 28px;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #E2E8F0;
+}
+
+.btn-secondary.disabled-btn, .btn-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-next-action {
+  background-color: var(--primary);
+  color: #FFFFFF;
+  border: none;
+  padding: 14px 32px;
+  font-size: 18px;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-fast);
+  box-shadow: 0 6px 16px rgba(79, 142, 247, 0.3);
+}
+
+.btn-next-action:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.btn-next-action.btn-submit-highlight {
+  background: linear-gradient(135deg, var(--secondary) 0%, #F59E0B 100%);
+  color: #78350F;
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+
+.btn-next-action.btn-submit-highlight:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* --------------------------------------------------------------------------
+   3. Submit Confirmation Modal
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+}
+
+.modal-card {
+  background-color: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  transform: scale(0.9);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-overlay.active .modal-card {
+  transform: scale(1);
+}
+
+.modal-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.modal-subtext {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-modal-cancel {
+  flex: 1;
+  background-color: #EDF2F7;
+  color: var(--text-main);
+  border: none;
+  padding: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+
+.btn-modal-confirm {
+  flex: 1;
+  background-color: var(--primary);
+  color: #FFFFFF;
+  border: none;
+  padding: 14px;
+  font-size: 17px;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(79, 142, 247, 0.3);
+}
+
+/* --------------------------------------------------------------------------
+   4. Result Screen Components
+   -------------------------------------------------------------------------- */
+.result-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.result-title {
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+/* Circular Progress Dashboard */
+.circular-score-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.circle-chart {
+  position: relative;
+  width: 180px;
+  height: 180px;
+}
+
+.circle-chart svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.circle-bg {
+  fill: none;
+  stroke: #EDF2F7;
+  stroke-width: 12;
+}
+
+.circle-progress {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s ease-out;
+}
+
+.circle-text-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.circle-score-val {
+  font-size: 38px;
+  font-weight: 900;
+  color: var(--primary);
+  font-family: 'Outfit', sans-serif;
+  line-height: 1;
+}
+
+.circle-score-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Score Stats Badges */
+.stats-badge-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-badge {
+  flex: 1;
+  max-width: 180px;
+  background-color: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.stat-badge.success-badge {
+  border-color: rgba(76, 175, 80, 0.3);
+  background-color: rgba(76, 175, 80, 0.05);
+}
+
+.stat-badge.wrong-badge {
+  border-color: rgba(244, 67, 54, 0.3);
+  background-color: rgba(244, 67, 54, 0.05);
+}
+
+.stat-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.success-badge .stat-value { color: var(--success); }
+.wrong-badge .stat-value { color: var(--wrong); }
+
+/* Result Action Buttons */
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+
+.btn-review {
+  background-color: #FFFFFF;
+  border: 2.5px solid var(--primary);
+  color: var(--primary);
+  padding: 14px 32px;
+  font-size: 18px;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  width: 100%;
+  max-width: 340px;
+  transition: all var(--transition-fast);
+}
+
+.btn-review:hover {
+  background-color: var(--primary-light);
+}
+
+.btn-restart {
+  background-color: var(--primary);
+  color: #FFFFFF;
+  border: none;
+  padding: 16px 32px;
+  font-size: 19px;
+  font-weight: 800;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 8px 18px rgba(79, 142, 247, 0.35);
+  transition: all var(--transition-fast);
+}
+
+.btn-restart:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(79, 142, 247, 0.45);
+}
+
+/* Wrong Review Cards Container */
+.wrong-review-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px dashed #E2E8F0;
+}
+
+.wrong-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.wrong-card {
+  background-color: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+.wrong-card-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.question-badge {
+  background-color: var(--primary);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.shape-badge {
+  background-color: #EDF2F7;
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.wrong-card-question {
+  font-size: 17px;
+  font-weight: 800;
+  margin-bottom: 14px;
+  color: var(--text-main);
+}
+
+.wrong-answers-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: #F8FAFC;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+}
+
+.ans-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.ans-label {
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 100px;
+}
+
+.ans-val {
+  font-weight: 800;
+}
+
+.wrong-text { color: var(--wrong); }
+.correct-text { color: var(--success); }
+
+.wrong-explanation-box {
+  background-color: var(--primary-light);
+  border-left: 4px solid var(--primary);
+  padding: 12px 14px;
+  border-radius: 4px;
+}
+
+.exp-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.exp-content {
+  font-size: 14px;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+.all-correct-banner {
+  background-color: #E8F5E9;
+  border: 2px dashed var(--success);
+  padding: 24px;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.banner-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.all-correct-banner h3 {
+  color: #2E7D32;
+  margin-bottom: 6px;
+}
+
+.all-correct-banner p {
+  color: #388E3C;
+  font-size: 15px;
+}
