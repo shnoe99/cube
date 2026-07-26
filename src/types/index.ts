@@ -1,4 +1,4 @@
-export type NavTab = 'home' | 'pin-join' | 'host-game' | 'stages' | 'encyclopedia' | 'leaderboard' | 'teacher' | 'settings';
+export type NavTab = 'home' | 'stages' | 'encyclopedia' | 'leaderboard' | 'teacher' | 'settings';
 
 export type StageId = 1 | 2 | 3 | 4;
 
@@ -53,16 +53,9 @@ export interface UserProfile {
   badges: string[];
   playTimeMinutes: number;
   role?: string;
+  isLoggedIn?: boolean;
   completedStageIds?: number[];
   wrongHistory?: unknown[];
   unlockedShapeIds: string[];
   weaknessStats: Record<QuestionCategory, { correct: number; total: number }>;
-}
-
-export interface PinRoom {
-  pin: string;
-  hostName: string;
-  title: string;
-  studentsCount: number;
-  status: 'waiting' | 'playing' | 'finished';
 }

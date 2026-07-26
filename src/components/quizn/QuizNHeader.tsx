@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavTab, UserProfile } from '../../types';
-import { KeyRound, Sparkles, Trophy, BookOpen, GraduationCap, Box, User, Volume2, VolumeX, LogIn, Flame, ArrowRight } from 'lucide-react';
+import { Sparkles, Trophy, BookOpen, GraduationCap, Box, Volume2, VolumeX, LogOut, Flame } from 'lucide-react';
 import { AudioEngine } from '../../services/audioEngine';
 
 interface QuizNHeaderProps {
   activeTab: NavTab;
   setActiveTab: (tab: NavTab) => void;
   user: UserProfile;
-  onJoinPin: (pin: string) => void;
   onOpenAuthModal: () => void;
   onOpenAIModal: () => void;
   soundMuted: boolean;
@@ -18,21 +17,11 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
   activeTab,
   setActiveTab,
   user,
-  onJoinPin,
   onOpenAuthModal,
   onOpenAIModal,
   soundMuted,
   setSoundMuted
 }) => {
-  const [pinInput, setPinInput] = useState('');
-
-  const handlePinSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pinInput.trim()) return;
-    AudioEngine.playWarpSwoosh();
-    onJoinPin(pinInput.trim());
-  };
-
   const toggleSound = () => {
     const next = !soundMuted;
     setSoundMuted(next);
@@ -43,33 +32,19 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
   return (
     <header className="sticky top-0 z-50 bg-purple-900 text-white shadow-xl border-b-4 border-yellow-400">
       
-      {/* Top Banner: QuizN Style PIN Input & Quick Login */}
-      <div className="bg-purple-950/80 px-4 py-2 border-b border-purple-800/60">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      {/* Top Status Bar */}
+      <div className="bg-purple-950/90 px-4 py-2 border-b border-purple-800/60">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs">
           
-          {/* PIN Input Bar */}
-          <form onSubmit={handlePinSubmit} className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
-              <KeyRound className="w-4 h-4 text-yellow-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="PIN 6자리 입력 (예: 123456)"
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value)}
-                className="w-full bg-purple-900/90 border-2 border-yellow-400/80 rounded-full pl-9 pr-3 py-1.5 text-xs font-black text-yellow-300 placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-yellow-400 hover:bg-yellow-300 text-purple-950 font-black px-4 py-1.5 rounded-full shadow-md text-xs shrink-0 flex items-center gap-1 transition-transform hover:scale-105"
-            >
-              <span>입장!</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </form>
+          <div className="flex items-center gap-2">
+            <span className="bg-yellow-400 text-purple-950 font-black px-3 py-0.5 rounded-full text-[11px] flex items-center gap-1 shadow-sm">
+              <Flame className="w-3.5 h-3.5 text-red-600 fill-red-500" />
+              <span>Easy & Fun QuizN 3D</span>
+            </span>
+          </div>
 
-          {/* Right Status Bar */}
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          {/* Right User Bar */}
+          <div className="flex items-center gap-3">
             <button
               onClick={onOpenAIModal}
               className="bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 px-3 py-1 rounded-full font-black text-xs shadow-md flex items-center gap-1 hover:scale-105 transition-transform"
@@ -78,16 +53,18 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
               <span>AI 퀴즈 조수</span>
             </button>
 
-            {/* User Profile / Login */}
+            {/* User Profile & Account Switch */}
             <button
               onClick={onOpenAuthModal}
               className="bg-purple-800 hover:bg-purple-700 border border-purple-600 px-3 py-1 rounded-full text-xs font-extrabold text-yellow-300 flex items-center gap-1.5 transition-colors"
+              title="계정 관리 및 무작위 전환"
             >
               <span className="text-base">{user.avatar}</span>
-              <span className="max-w-[90px] truncate">{user.name}</span>
+              <span className="max-w-[100px] truncate">{user.name}</span>
               <span className="text-[10px] bg-yellow-400 text-purple-950 px-1.5 py-0.2 rounded-full font-black ml-1">
                 {user.energy}⚡
               </span>
+              <LogOut className="w-3.5 h-3.5 text-purple-300 ml-1" />
             </button>
 
             {/* Sound Toggle */}
@@ -125,12 +102,12 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
                 <span className="font-black text-2xl tracking-wider text-yellow-300 drop-shadow-md">
                   큐브앤 <span className="text-white text-lg font-bold">QuizN.3D</span>
                 </span>
-                <span className="bg-red-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full animate-pulse">
-                  LIVE 퀴즈쇼
+                <span className="bg-red-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full">
+                  6학년 공간지각
                 </span>
               </div>
               <p className="text-[11px] font-bold text-purple-200 hidden sm:block">
-                Easy & Fun 3D 공간지각 라이브 퀴즈쇼
+                초등학교 6학년 정육면체 3D 공간감각 학습 플랫폼
               </p>
             </div>
           </div>
@@ -140,26 +117,11 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
             <button
               onClick={() => {
                 AudioEngine.playClick();
-                setActiveTab('pin-join');
-              }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black text-sm transition-all ${
-                activeTab === 'pin-join'
-                  ? 'bg-yellow-400 text-purple-950 shadow-lg shadow-yellow-400/30 scale-105'
-                  : 'text-purple-100 hover:bg-purple-800/80 hover:text-white'
-              }`}
-            >
-              <KeyRound className="w-4 h-4" />
-              <span>PIN 퀴즈쇼 입장</span>
-            </button>
-
-            <button
-              onClick={() => {
-                AudioEngine.playClick();
                 setActiveTab('stages');
               }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black text-sm transition-all ${
                 activeTab === 'stages'
-                  ? 'bg-cyan-400 text-purple-950 shadow-lg shadow-cyan-400/30 scale-105'
+                  ? 'bg-yellow-400 text-purple-950 shadow-lg shadow-yellow-400/30 scale-105'
                   : 'text-purple-100 hover:bg-purple-800/80 hover:text-white'
               }`}
             >
@@ -174,7 +136,7 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
               }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black text-sm transition-all ${
                 activeTab === 'encyclopedia'
-                  ? 'bg-emerald-400 text-purple-950 shadow-lg shadow-emerald-400/30 scale-105'
+                  ? 'bg-cyan-400 text-purple-950 shadow-lg shadow-cyan-400/30 scale-105'
                   : 'text-purple-100 hover:bg-purple-800/80 hover:text-white'
               }`}
             >
@@ -200,16 +162,16 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
             <button
               onClick={() => {
                 AudioEngine.playClick();
-                setActiveTab('host-game');
+                setActiveTab('teacher');
               }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl font-black text-sm transition-all ${
-                activeTab === 'host-game' || activeTab === 'teacher'
-                  ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-105'
-                  : 'bg-red-600 hover:bg-red-500 text-white shadow-md'
+                activeTab === 'teacher'
+                  ? 'bg-emerald-400 text-purple-950 shadow-lg shadow-emerald-400/30 scale-105'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md'
               }`}
             >
               <GraduationCap className="w-4 h-4" />
-              <span>퀴즈쇼 주최하기! 🎤</span>
+              <span>교사 모드 👩‍🏫</span>
             </button>
           </nav>
 
@@ -221,20 +183,9 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
         <button
           onClick={() => {
             AudioEngine.playClick();
-            setActiveTab('pin-join');
-          }}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'pin-join' ? 'text-yellow-300 font-black' : 'text-purple-300'}`}
-        >
-          <KeyRound className="w-4 h-4" />
-          <span>PIN 퀴즈쇼</span>
-        </button>
-
-        <button
-          onClick={() => {
-            AudioEngine.playClick();
             setActiveTab('stages');
           }}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'stages' ? 'text-cyan-300 font-black' : 'text-purple-300'}`}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'stages' ? 'text-yellow-300 font-black' : 'text-purple-300'}`}
         >
           <Box className="w-4 h-4" />
           <span>3D 어드벤처</span>
@@ -245,7 +196,7 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
             AudioEngine.playClick();
             setActiveTab('encyclopedia');
           }}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'encyclopedia' ? 'text-emerald-300 font-black' : 'text-purple-300'}`}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'encyclopedia' ? 'text-cyan-300 font-black' : 'text-purple-300'}`}
         >
           <BookOpen className="w-4 h-4" />
           <span>큐브 도감</span>
@@ -254,12 +205,23 @@ export const QuizNHeader: React.FC<QuizNHeaderProps> = ({
         <button
           onClick={() => {
             AudioEngine.playClick();
-            setActiveTab('host-game');
+            setActiveTab('leaderboard');
           }}
-          className={`flex flex-col items-center gap-1 ${activeTab === 'host-game' ? 'text-red-300 font-black' : 'text-purple-300'}`}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'leaderboard' ? 'text-amber-300 font-black' : 'text-purple-300'}`}
+        >
+          <Trophy className="w-4 h-4" />
+          <span>명예의 전당</span>
+        </button>
+
+        <button
+          onClick={() => {
+            AudioEngine.playClick();
+            setActiveTab('teacher');
+          }}
+          className={`flex flex-col items-center gap-1 ${activeTab === 'teacher' ? 'text-emerald-300 font-black' : 'text-purple-300'}`}
         >
           <GraduationCap className="w-4 h-4" />
-          <span>퀴즈쇼 주최</span>
+          <span>교사 모드</span>
         </button>
       </div>
 
