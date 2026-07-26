@@ -1,101 +1,92 @@
-import { UserProfile, WrongAnswerItem } from '../types';
+import { UserProfile } from '../types';
 
-const STORAGE_KEY_USER = 'cube_master_user_profile_v1';
+const STORAGE_KEY = 'cube_master_user_profile_v2';
 
-const DEFAULT_USER: UserProfile = {
-  uid: 'guest_student_1',
-  name: '큐브탐험가',
-  className: '6학년 1반',
-  role: 'student',
+const DEFAULT_PROFILE: UserProfile = {
+  uid: 'guest_' + Math.random().toString(36).substring(2, 9),
+  name: '익명 연구원',
+  avatar: '🧊 큐브봇',
+  energy: 150,
   level: 1,
-  energy: 0,
-  highScore: 0,
-  unlockedShapeIds: ['cube_1'],
-  completedStageIds: [],
-  playTimeMinutes: 5,
-  badges: ['새내기 연구원'],
-  wrongHistory: [],
+  highScore: 90,
+  className: '6학년 1반',
+  badges: ['큐브 탐험가'],
+  playTimeMinutes: 45,
+  role: 'student',
+  unlockedShapeIds: ['cube-1'],
   weaknessStats: {
-    net: { correct: 0, total: 0 },
-    rotation: { correct: 0, total: 0 },
-    ortho: { correct: 0, total: 0 },
-    assembly: { correct: 0, total: 0 }
+    assembly: { correct: 2, total: 2 },
+    rotation: { correct: 1, total: 2 },
+    ortho: { correct: 2, total: 3 },
+    net: { correct: 1, total: 3 }
   }
 };
 
 export const StorageService = {
-  // 유저 프로필 불러오기 (LocalStorage 또는 Firebase Fallback)
   getUserProfile: (): UserProfile => {
     try {
-      const data = localStorage.getItem(STORAGE_KEY_USER);
+      const data = localStorage.getItem(STORAGE_KEY);
       if (data) {
-        return JSON.parse(data) as UserProfile;
+        return JSON.parse(data);
       }
     } catch (e) {
-      console.warn('LocalStorage load error, using default user profile.', e);
+      console.warn('LocalStorage load error', e);
     }
-    return DEFAULT_USER;
+    return DEFAULT_PROFILE;
   },
 
-  // 유저 프로필 저장 (LocalStorage 동기화)
   saveUserProfile: (profile: UserProfile): void => {
     try {
-      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(profile));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
     } catch (e) {
-      console.error('LocalStorage save error.', e);
+      console.warn('LocalStorage save error', e);
     }
   },
 
-  // 포인트 / 큐브 에너지 업데이트
   addEnergy: (amount: number): UserProfile => {
-    const user = StorageService.getUserProfile();
-    user.energy += amount;
-    
-    // 레벨 업 계산 (100 에너지마다 1 레벨업)
-    const newLevel = Math.floor(user.energy / 100) + 1;
-    if (newLevel > user.level) {
-      user.level = newLevel;
-      if (!user.badges.includes(`Lv.${newLevel} 공간 마스터`)) {
-        user.badges.push(`Lv.${newLevel} 공간 마스터`);
-      }
-    }
-
-    StorageService.saveUserProfile(user);
-    return user;
+    const profile = StorageService.getUserProfile();
+    profile.energy += amount;
+    profile.level = Math.floor(profile.energy / 100) + 1;
+    StorageService.saveUserProfile(profile);
+    return profile;
   },
 
-  // 오답 기록 추가
-  recordWrongAnswer: (item: WrongAnswerItem): void => {
-    const user = StorageService.getUserProfile();
-    user.wrongHistory.unshift(item);
-    // 최대 20개 저장
-    if (user.wrongHistory.length > 20) {
-      user.wrongHistory = user.wrongHistory.slice(0, 20);
+  unlockShape: (shapeId: string): UserProfile => {
+    const profile = StorageService.getUserProfile();
+    if (!profile.unlockedShapeIds.includes(shapeId)) {
+      profile.unlockedShapeIds.push(shapeId);
+      StorageService.saveUserProfile(profile);
     }
-    StorageService.saveUserProfile(user);
+    return profile;
   },
 
-  // 카테고리 통계 업데이트
-  updateCategoryStats: (category: 'net' | 'rotation' | 'ortho' | 'assembly', isCorrect: boolean): void => {
-    const user = StorageService.getUserProfile();
-    user.weaknessStats[category].total += 1;
+  recordQuizAnswer: (category: 'assembly' | 'rotation' | 'ortho' | 'net', isCorrect: boolean): UserProfile => {
+    const profile = StorageService.getUserProfile();
+    if (!profile.weaknessStats[category]) {
+      profile.weaknessStats[category] = { correct: 0, total: 0 };
+    }
+    profile.weaknessStats[category].total += 1;
     if (isCorrect) {
-      user.weaknessStats[category].correct += 1;
+      profile.weaknessStats[category].correct += 1;
     }
-    StorageService.saveUserProfile(user);
+    StorageService.saveUserProfile(profile);
+    return profile;
   },
 
-  // 입체도형 도감 해금
-  unlockShape: (shapeId: string): void => {
-    const user = StorageService.getUserProfile();
-    if (!user.unlockedShapeIds.includes(shapeId)) {
-      user.unlockedShapeIds.push(shapeId);
-      StorageService.saveUserProfile(user);
-    }
+  updateCategoryStats: (category: 'assembly' | 'rotation' | 'ortho' | 'net', isCorrect: boolean): UserProfile => {
+    return StorageService.recordQuizAnswer(category, isCorrect);
   },
 
-  // 데이터 초기화
+  recordWrongAnswer: (_payload?: unknown): UserProfile => {
+    const cat = (typeof _payload === 'string' ? _payload : 'assembly') as 'assembly' | 'rotation' | 'ortho' | 'net';
+    return StorageService.recordQuizAnswer(cat, false);
+  },
+
   resetData: (): void => {
-    localStorage.removeItem(STORAGE_KEY_USER);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn('LocalStorage reset error', e);
+    }
   }
 };

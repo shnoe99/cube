@@ -1,244 +1,171 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { CubePos } from '../../types';
 
 interface CubeViewer3DProps {
-  cubes: CubePos[];
+  cubes: Array<[number, number, number] | { x: number; y: number; z: number }>;
+  height?: number;
   autoRotate?: boolean;
   interactive?: boolean;
-  height?: string | number;
-  colorOverride?: string;
-  showGrid?: boolean;
-  className?: string;
+  highlightIndex?: number;
 }
 
 export const CubeViewer3D: React.FC<CubeViewer3DProps> = ({
   cubes,
+  height = 240,
   autoRotate = true,
   interactive = true,
-  height = '240px',
-  colorOverride,
-  showGrid = true,
-  className = ''
+  highlightIndex
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const previousMousePositionRef = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    const width = container.clientWidth || 300;
-    const hVal = typeof height === 'number' ? height : (parseInt(height as string, 10) || 240);
-
     // 1. Scene, Camera, Renderer
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf8fafc); // Light lab background
 
-    const camera = new THREE.PerspectiveCamera(45, width / hVal, 0.1, 1000);
-    camera.position.set(4, 3.5, 5);
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / height, 0.1, 1000);
+    camera.position.set(4, 4, 6);
     camera.lookAt(0, 0, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(width, hVal);
+    renderer.setSize(container.clientWidth, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    container.innerHTML = '';
     container.appendChild(renderer.domElement);
 
     // 2. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
     dirLight.position.set(5, 10, 7);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 1024;
-    dirLight.shadow.mapSize.height = 1024;
     scene.add(dirLight);
 
-    const fillLight = new THREE.DirectionalLight(0xa5f3fc, 0.5); // Mint fill light
-    fillLight.position.set(-5, -2, -5);
-    scene.add(fillLight);
+    const pointLight = new THREE.PointLight(0xf59e0b, 1.5, 20);
+    pointLight.position.set(-5, 5, -5);
+    scene.add(pointLight);
 
-    // 3. Grid Helper & Shadow Plane
-    if (showGrid) {
-      const grid = new THREE.GridHelper(8, 8, 0x94a3b8, 0xe2e8f0);
-      grid.position.y = -1;
-      scene.add(grid);
-    }
+    // 3. Group & Cube Meshes
+    const pivotGroup = new THREE.Group();
+    const cubeGeo = new THREE.BoxGeometry(0.94, 0.94, 0.94);
 
-    const planeGeo = new THREE.PlaneGeometry(20, 20);
-    const planeMat = new THREE.ShadowMaterial({ opacity: 0.12 });
-    const shadowPlane = new THREE.Mesh(planeGeo, planeMat);
-    shadowPlane.rotation.x = -Math.PI / 2;
-    shadowPlane.position.y = -1.01;
-    shadowPlane.receiveShadow = true;
-    scene.add(shadowPlane);
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    let minZ = Infinity, maxZ = -Infinity;
 
-    // 4. Cube Group & Mesh Creation
-    const shapeGroup = new THREE.Group();
+    // Standardize positions array
+    const parsedPositions = cubes.map((c) => {
+      if (Array.isArray(c)) {
+        return { x: c[0], y: c[1], z: c[2] };
+      }
+      return { x: c.x, y: c.y, z: c.z };
+    });
 
-    // Calculate center offset
-    if (cubes.length > 0) {
-      let minX = Infinity, maxX = -Infinity;
-      let minY = Infinity, maxY = -Infinity;
-      let minZ = Infinity, maxZ = -Infinity;
+    parsedPositions.forEach((p) => {
+      minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+      minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+      minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z);
+    });
 
-      cubes.forEach(c => {
-        if (c.x < minX) minX = c.x;
-        if (c.x > maxX) maxX = c.x;
-        if (c.y < minY) minY = c.y;
-        if (c.y > maxY) maxY = c.y;
-        if (c.z < minZ) minZ = c.z;
-        if (c.z > maxZ) maxZ = c.z;
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const centerZ = (minZ + maxZ) / 2;
+
+    parsedPositions.forEach((p, idx) => {
+      const isHighlighted = idx === highlightIndex;
+      const mat = new THREE.MeshStandardMaterial({
+        color: isHighlighted ? 0xef4444 : 0x3b82f6,
+        roughness: 0.2,
+        metalness: 0.1
       });
 
-      const centerX = (minX + maxX) / 2;
-      const centerY = (minY + maxY) / 2;
-      const centerZ = (minZ + maxZ) / 2;
+      const mesh = new THREE.Mesh(cubeGeo, mat);
+      mesh.position.set(p.x - centerX, p.y - centerY, p.z - centerZ);
 
-      const cubeGeo = new THREE.BoxGeometry(0.92, 0.92, 0.92);
+      // Edges geometry
+      const edges = new THREE.EdgesGeometry(cubeGeo);
+      const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+      const wireframe = new THREE.LineSegments(edges, lineMat);
+      mesh.add(wireframe);
 
-      cubes.forEach((c, idx) => {
-        const matColor = colorOverride || c.color || '#3B82F6';
-        
-        // Stylish toon/phong material with edge lines
-        const mat = new THREE.MeshPhongMaterial({
-          color: new THREE.Color(matColor),
-          shininess: 60,
-          specular: new THREE.Color(0xffffff)
-        });
+      pivotGroup.add(mesh);
+    });
 
-        const mesh = new THREE.Mesh(cubeGeo, mat);
-        mesh.position.set(c.x - centerX, c.y - centerY, c.z - centerZ);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+    scene.add(pivotGroup);
 
-        // Black wireframe edge outline for clean cartoon style
-        const edgesGeo = new THREE.EdgesGeometry(cubeGeo);
-        const lineMat = new THREE.LineBasicMaterial({ color: 0x1e293b, linewidth: 2 });
-        const wireframe = new THREE.LineSegments(edgesGeo, lineMat);
-        mesh.add(wireframe);
-
-        shapeGroup.add(mesh);
-      });
-    }
-
-    scene.add(shapeGroup);
-
-    // 5. Mouse Drag Controls (Simple 3D Orbiting)
-    let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
-
-    const onMouseDown = (e: MouseEvent) => {
+    // 4. Interaction Events (Mouse/Touch Drag Rotation)
+    const handleMouseDown = (e: MouseEvent) => {
       if (!interactive) return;
-      isDragging = true;
-      previousMousePosition = { x: e.clientX, y: e.clientY };
+      isDraggingRef.current = true;
+      previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
     };
 
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !interactive) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current || !interactive) return;
+      const deltaX = e.clientX - previousMousePositionRef.current.x;
+      const deltaY = e.clientY - previousMousePositionRef.current.y;
 
-      const deltaMove = {
-        x: e.clientX - previousMousePosition.x,
-        y: e.clientY - previousMousePosition.y
-      };
+      pivotGroup.rotation.y += deltaX * 0.01;
+      pivotGroup.rotation.x += deltaY * 0.01;
 
-      shapeGroup.rotation.y += deltaMove.x * 0.01;
-      shapeGroup.rotation.x += deltaMove.y * 0.01;
-
-      previousMousePosition = { x: e.clientX, y: e.clientY };
+      previousMousePositionRef.current = { x: e.clientX, y: e.clientY };
     };
 
-    const onMouseUp = () => {
-      isDragging = false;
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
     };
 
-    // Touch events for mobile
-    const onTouchStart = (e: TouchEvent) => {
-      if (!interactive || e.touches.length === 0) return;
-      isDragging = true;
-      previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isDragging || !interactive || e.touches.length === 0) return;
-      const deltaMove = {
-        x: e.touches[0].clientX - previousMousePosition.x,
-        y: e.touches[0].clientY - previousMousePosition.y
-      };
-
-      shapeGroup.rotation.y += deltaMove.x * 0.015;
-      shapeGroup.rotation.x += deltaMove.y * 0.015;
-
-      previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    };
-
-    const domEl = renderer.domElement;
     if (interactive) {
-      domEl.style.cursor = 'grab';
-      domEl.addEventListener('mousedown', onMouseDown);
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
-
-      domEl.addEventListener('touchstart', onTouchStart, { passive: true });
-      window.addEventListener('touchmove', onTouchMove, { passive: true });
-      window.addEventListener('touchend', onMouseUp);
+      container.addEventListener('mousedown', handleMouseDown);
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
     }
 
-    // 6. Animation Loop
+    // 5. Animation Loop
     let animId: number;
     const animate = () => {
       animId = requestAnimationFrame(animate);
-
-      if (autoRotate && !isDragging) {
-        shapeGroup.rotation.y += 0.008;
+      if (autoRotate && !isDraggingRef.current) {
+        pivotGroup.rotation.y += 0.012;
       }
-
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // Resize Handler
     const handleResize = () => {
       if (!container) return;
-      const newW = container.clientWidth || 300;
-      camera.aspect = newW / hVal;
+      camera.aspect = container.clientWidth / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(newW, hVal);
+      renderer.setSize(container.clientWidth, height);
     };
 
     window.addEventListener('resize', handleResize);
 
-    // Cleanup
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
-
       if (interactive) {
-        domEl.removeEventListener('mousedown', onMouseDown);
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
-        domEl.removeEventListener('touchstart', onTouchStart);
-        window.removeEventListener('touchmove', onTouchMove);
-        window.removeEventListener('touchend', onMouseUp);
+        container.removeEventListener('mousedown', handleMouseDown);
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
       }
-
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
     };
-  }, [cubes, autoRotate, interactive, height, colorOverride, showGrid]);
+  }, [cubes, height, autoRotate, interactive, highlightIndex]);
 
   return (
     <div
       ref={mountRef}
-      className={`relative w-full rounded-2xl overflow-hidden shadow-inner bg-slate-100/60 border border-slate-200/80 ${className}`}
-      style={{ height: typeof height === 'number' ? `${height}px` : height }}
+      style={{ height: `${height}px` }}
+      className="w-full relative cursor-grab active:cursor-grabbing select-none"
     />
   );
 };

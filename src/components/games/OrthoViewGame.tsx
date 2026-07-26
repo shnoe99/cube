@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { CubeViewer3D } from '../3d/CubeViewer3D';
 import { CUBE_SHAPES } from '../../data/cubeShapes';
-import { AudioEngine } from '../../services/audioEngine';
+import { CubeViewer3D } from '../3d/CubeViewer3D';
 import { StorageService } from '../../services/storageService';
-import { CheckCircle2, ArrowRight, RotateCcw, Eye, ArrowUp, ArrowRightFromLine } from 'lucide-react';
+import { AudioEngine } from '../../services/audioEngine';
+import { Eye, ArrowLeft, CheckCircle2, XCircle, Sparkles, HelpCircle, Trophy } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface OrthoViewGameProps {
@@ -12,75 +12,74 @@ interface OrthoViewGameProps {
 }
 
 export const OrthoViewGame: React.FC<OrthoViewGameProps> = ({ onBack, onScoreUpdate }) => {
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [selectedDirection, setSelectedDirection] = useState<'top' | 'front' | 'side'>('front');
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
+  const [currentRound, setCurrentRound] = useState(0);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+
+  const targetShape = CUBE_SHAPES[currentRound % CUBE_SHAPES.length];
+  const directions: Array<'top' | 'front' | 'side'> = ['top', 'front', 'side'];
+  const [selectedDirection] = useState<'top' | 'front' | 'side'>(
+    directions[currentRound % directions.length]
+  );
+
+  const [userSelectedIdx, setUserSelectedIdx] = useState<number | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const targetShape = CUBE_SHAPES[currentIdx % CUBE_SHAPES.length];
-  const orthoData = targetShape.orthoViews;
+  const orthoData = targetShape.orthoViews || {
+    top: [[true, true], [false, true]],
+    front: [[true, true], [true, false]],
+    side: [[true, false], [true, true]]
+  };
 
-  // Options for front/top/side block count & grid representation
-  const options = [
-    { label: '위(Top) 모습', viewType: 'top', isCorrect: selectedDirection === 'top' },
-    { label: '앞(Front) 모습', viewType: 'front', isCorrect: selectedDirection === 'front' },
-    { label: '옆(Side) 모습', viewType: 'side', isCorrect: selectedDirection === 'side' }
-  ];
+  const options = ['위에서 본 모습', '앞에서 본 모습', '옆에서 본 모습'];
+  const correctIdx = directions.indexOf(selectedDirection);
 
-  const handleSelect = (idx: number, isRight: boolean) => {
-    if (isAnswered) return;
-    setSelectedOption(idx);
-    setIsAnswered(true);
-    setIsCorrect(isRight);
+  const handleChoice = (idx: number) => {
+    if (userSelectedIdx !== null) return;
+    setUserSelectedIdx(idx);
 
-    StorageService.updateCategoryStats('ortho', isRight);
+    const correct = idx === correctIdx;
+    setIsCorrect(correct);
+    setShowFeedback(true);
 
-    if (isRight) {
+    if (correct) {
       AudioEngine.playCorrect();
-      StorageService.addEnergy(10);
-      onScoreUpdate();
-      confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+      setScore(s => s + 20);
+      setStreak(st => st + 1);
+      StorageService.updateCategoryStats('ortho', true);
+      StorageService.unlockShape(targetShape.id);
+
+      if ((streak + 1) % 3 === 0) {
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+      }
     } else {
       AudioEngine.playWrong();
-      StorageService.recordWrongAnswer({
-        id: `ortho_${Date.now()}`,
-        questionText: `[투상도] ${targetShape.name} 관찰 방향 맞추기`,
-        category: 'ortho',
-        userChoice: options[idx].label,
-        correctChoice: options.find(o => o.isCorrect)?.label || '',
-        explanation: `${targetShape.name}의 ${selectedDirection === 'top' ? '위' : selectedDirection === 'front' ? '앞' : '옆'} 모습 투상도입니다.`,
-        timestamp: new Date().toLocaleDateString('ko-KR')
-      });
+      setStreak(0);
+      StorageService.updateCategoryStats('ortho', false);
     }
+    onScoreUpdate();
   };
 
   const handleNext = () => {
     AudioEngine.playClick();
-    setSelectedOption(null);
-    setIsAnswered(false);
-    setIsCorrect(false);
-    
-    // Pick random direction for next round
-    const dirs: Array<'top' | 'front' | 'side'> = ['top', 'front', 'side'];
-    setSelectedDirection(dirs[Math.floor(Math.random() * dirs.length)]);
-    setCurrentIdx(prev => prev + 1);
+    setUserSelectedIdx(null);
+    setShowFeedback(false);
+    setCurrentRound(r => r + 1);
   };
 
-  // Render 3x3 Orthographic Grid
   const renderGrid = (grid: boolean[][]) => {
+    const safeGrid = grid || [[true]];
     return (
-      <div className="grid grid-cols-3 gap-1 bg-slate-800 p-2 rounded-xl border border-slate-700 shadow-md">
-        {grid.flatMap((row, rIdx) =>
+      <div className="grid grid-cols-2 gap-2 p-3 bg-purple-950 rounded-2xl border-2 border-purple-700 shadow-inner">
+        {safeGrid.map((row, rIdx) =>
           row.map((val, cIdx) => (
             <div
               key={`${rIdx}-${cIdx}`}
-              className={`w-8 h-8 rounded-md flex items-center justify-center transition-all ${
-                val ? 'bg-gradient-to-tr from-sky-400 to-emerald-400 border border-white/60 shadow-sm' : 'bg-slate-700/50'
+              className={`w-10 h-10 rounded-xl transition-all ${
+                val ? 'bg-yellow-400 border-2 border-white shadow-md' : 'bg-purple-900 border border-purple-800'
               }`}
-            >
-              {val && <span className="text-[10px] text-slate-900 font-bold">■</span>}
-            </div>
+            />
           ))
         )}
       </div>
@@ -88,109 +87,64 @@ export const OrthoViewGame: React.FC<OrthoViewGameProps> = ({ onBack, onScoreUpd
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Game Top Bar */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-slate-600 font-bold hover:text-blue-600 transition-colors"
-        >
-          <RotateCcw className="w-5 h-5" />
-          <span>미니게임 목록</span>
-        </button>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-full border border-indigo-200">
-            미니게임 3: 앞·옆·위 모습 맞추기 👁️
-          </span>
-          <span className="text-xs font-bold text-slate-500">
-            문제 {currentIdx + 1}
-          </span>
-        </div>
-      </div>
-
-      {/* Main Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-xl sm:text-2xl font-black text-slate-800">
-            주어진 투상도 (2D 격자 모습)
-          </h2>
-          <p className="text-sm font-semibold text-slate-500">
-            오른쪽에 표시된 2D 격자 모습이 3D 도형 <span className="text-indigo-600 font-bold">{targetShape.name}</span>을 어느 방향에서 바라본 모습일지 맞혀보세요!
-          </p>
+    <div className="max-w-3xl mx-auto space-y-6 pb-12 pt-2">
+      <div className="bg-purple-900 rounded-3xl p-6 sm:p-8 border-4 border-yellow-400 text-white shadow-2xl space-y-6">
+        <div className="flex items-center justify-between border-b border-purple-800 pb-4">
+          <button onClick={onBack} className="flex items-center gap-1.5 text-xs font-black text-purple-200 hover:text-white">
+            <ArrowLeft className="w-4 h-4" />
+            <span>돌아가기</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="bg-yellow-400 text-purple-950 font-black text-xs px-3 py-1 rounded-full">
+              점수: {score} Pts ⚡
+            </span>
+          </div>
         </div>
 
-        {/* 3D Viewer & Target Ortho Grid side by side */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-          <div className="flex flex-col items-center">
-            <span className="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full mb-2">
+        <h2 className="text-2xl font-black text-center text-yellow-300">
+          👁️ 위·앞·옆 모습 맞추기 (투상도)
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-purple-950 p-4 rounded-2xl border-2 border-purple-700 text-center">
+            <span className="text-xs font-black text-yellow-300 bg-purple-900 px-3 py-1 rounded-full border border-purple-700 mb-2 inline-block">
               🧊 3D 입체도형 ({targetShape.name})
             </span>
-            <CubeViewer3D cubes={targetShape.cubes} height={220} autoRotate={true} interactive={true} />
+            <CubeViewer3D cubes={targetShape.cubes} height={200} autoRotate={true} />
           </div>
 
-          <div className="flex flex-col items-center bg-slate-50 p-6 rounded-3xl border border-slate-200">
-            <span className="text-xs font-black text-slate-700 bg-white px-3 py-1 rounded-full border border-slate-200 mb-3 shadow-sm flex items-center gap-1">
-              <Eye className="w-3.5 h-3.5 text-indigo-600" />
-              <span>관찰된 2D 모습 (투상도)</span>
+          <div className="flex flex-col items-center bg-purple-950 p-6 rounded-2xl border-2 border-purple-700 text-center space-y-3">
+            <span className="text-xs font-black text-yellow-300 bg-purple-900 px-3 py-1 rounded-full border border-purple-700 flex items-center gap-1">
+              <Eye className="w-3.5 h-3.5 text-yellow-400" />
+              <span>관찰된 2D 모습</span>
             </span>
             {renderGrid(orthoData[selectedDirection])}
-            <p className="text-xs font-bold text-slate-400 mt-3">
-              (파란색으로 표시된 칸이 눈에 보이는 큐브 면입니다)
-            </p>
           </div>
         </div>
 
-        {/* Options */}
         <div className="grid grid-cols-3 gap-3">
-          {options.map((opt, idx) => {
-            let btnStyle = "border-slate-200 hover:border-indigo-400 bg-white text-slate-700";
-            if (isAnswered) {
-              if (opt.isCorrect) {
-                btnStyle = "border-emerald-500 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-400 font-black";
-              } else if (selectedOption === idx) {
-                btnStyle = "border-red-400 bg-red-50 text-red-700 font-bold";
-              } else {
-                btnStyle = "opacity-40 border-slate-200 bg-slate-50 text-slate-400";
-              }
-            }
-
-            return (
-              <button
-                key={idx}
-                disabled={isAnswered}
-                onClick={() => handleSelect(idx, opt.isCorrect)}
-                className={`p-4 rounded-2xl border-2 text-center font-bold text-sm transition-all shadow-sm flex flex-col items-center gap-1 ${btnStyle}`}
-              >
-                {opt.viewType === 'top' && <ArrowUp className="w-5 h-5 text-indigo-500" />}
-                {opt.viewType === 'front' && <Eye className="w-5 h-5 text-indigo-500" />}
-                {opt.viewType === 'side' && <ArrowRightFromLine className="w-5 h-5 text-indigo-500" />}
-                <span>{opt.label}</span>
-              </button>
-            );
-          })}
+          {options.map((opt, idx) => (
+            <button
+              key={idx}
+              disabled={userSelectedIdx !== null}
+              onClick={() => handleChoice(idx)}
+              className={`p-4 rounded-2xl border-2 font-black text-sm transition-all ${
+                userSelectedIdx === idx
+                  ? 'bg-yellow-400 text-purple-950 border-white scale-105 shadow-lg'
+                  : 'bg-purple-950 text-white border-purple-700 hover:border-purple-500'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
         </div>
 
-        {/* Feedback Section */}
-        {isAnswered && (
-          <div className={`p-5 rounded-2xl border-2 flex flex-col sm:flex-row items-center justify-between gap-4 ${
-            isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-red-50 border-red-200 text-red-900'
+        {showFeedback && (
+          <div className={`p-4 rounded-2xl border-2 font-black text-center text-sm ${
+            isCorrect ? 'bg-emerald-900 border-emerald-400 text-emerald-200' : 'bg-red-900 border-red-400 text-red-200'
           }`}>
-            <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-8 h-8 text-emerald-600 shrink-0" />
-              <div>
-                <p className="font-extrabold text-base">
-                  {isCorrect ? '정답입니다! 위·앞·옆 시각적 공간 감각 완벽! +10 큐브 에너지 ⚡' : '아쉬워요! 다시 방향을 따져보세요.'}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={handleNext}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold px-6 py-3 rounded-xl shadow-lg shadow-indigo-500/20 flex items-center gap-2 shrink-0 transition-transform hover:scale-105"
-            >
-              <span>다음 문제</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            <span>{isCorrect ? '🎉 정답입니다!' : '오답입니다! 다시 관찰해보세요.'}</span>
+            <button onClick={handleNext} className="ml-4 underline">다음 문제 ➔</button>
           </div>
         )}
       </div>
