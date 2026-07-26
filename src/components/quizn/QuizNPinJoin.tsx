@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UserProfile } from '../../types';
 import { StorageService } from '../../services/storageService';
+import { FirestoreSyncService } from '../../services/firestoreSync';
 import { AudioEngine } from '../../services/audioEngine';
 import { CUBE_SHAPES } from '../../data/cubeShapes';
 import { CubeViewer3D } from '../3d/CubeViewer3D';
@@ -30,7 +31,6 @@ export const QuizNPinJoin: React.FC<QuizNPinJoinProps> = ({
   const [inLobby, setInLobby] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [currentQIndex, setCurrentQIndex] = useState(0);
-  const [timer, setTimer] = useState(20);
   const [score, setScore] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
@@ -61,7 +61,7 @@ export const QuizNPinJoin: React.FC<QuizNPinJoinProps> = ({
     }
   ];
 
-  const handleJoinLobby = (e: React.FormEvent) => {
+  const handleJoinLobby = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pin.trim() || !nickname.trim()) return;
 
@@ -72,6 +72,9 @@ export const QuizNPinJoin: React.FC<QuizNPinJoinProps> = ({
     StorageService.saveUserProfile(updated);
     onUserUpdate(updated);
 
+    // Join Firestore PIN room
+    await FirestoreSyncService.joinPinRoom(pin.trim(), nickname, selectedAvatar);
+
     setInLobby(true);
   };
 
@@ -81,7 +84,6 @@ export const QuizNPinJoin: React.FC<QuizNPinJoinProps> = ({
     setGameStarted(true);
     setCurrentQIndex(0);
     setScore(0);
-    setTimer(20);
     setSelectedAnswer(null);
     setShowExplanation(false);
   };
@@ -110,7 +112,6 @@ export const QuizNPinJoin: React.FC<QuizNPinJoinProps> = ({
       setCurrentQIndex(i => i + 1);
       setSelectedAnswer(null);
       setShowExplanation(false);
-      setTimer(20);
     } else {
       // Show Final Podium
       AudioEngine.playFanfare();
@@ -221,7 +222,7 @@ export const QuizNPinJoin: React.FC<QuizNPinJoinProps> = ({
       <div className="max-w-2xl mx-auto space-y-6 pb-12 pt-6 text-center">
         <div className="bg-purple-900 rounded-3xl p-8 border-4 border-yellow-400 text-white shadow-2xl space-y-6">
           <div className="inline-flex items-center gap-2 bg-red-500 text-white px-4 py-1.5 rounded-full font-black text-xs animate-pulse">
-            <span>● LIVE 퀴즈쇼 대기실</span>
+            <span>● LIVE 퀴즈쇼 대기실 (Firestore 동기화)</span>
           </div>
 
           <div>

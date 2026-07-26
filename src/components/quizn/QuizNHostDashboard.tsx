@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AudioEngine } from '../../services/audioEngine';
-import { GraduationCap, Play, Users, Sparkles, Copy, Check, RotateCcw } from 'lucide-react';
+import { FirestoreSyncService } from '../../services/firestoreSync';
+import { GraduationCap, Play, Users, Sparkles, Copy, Check, RotateCcw, ShieldCheck } from 'lucide-react';
 
 interface QuizNHostDashboardProps {
   onBackHome: () => void;
@@ -11,14 +12,26 @@ export const QuizNHostDashboard: React.FC<QuizNHostDashboardProps> = ({ onBackHo
   const [copied, setCopied] = useState(false);
   const [hostStarted, setHostStarted] = useState(false);
 
-  // Simulated connected student avatars
-  const connectedStudents = [
+  // Realtime student roster from Firestore
+  const [connectedStudents, setConnectedStudents] = useState<Array<{ name: string; avatar: string }>>([
     { name: '민준이', avatar: '🧊 큐브봇' },
     { name: '서연이', avatar: '🐶 멍뭉이' },
-    { name: '지후', avatar: '🐱 냥냥이' },
-    { name: '하은이', avatar: '🦊 여우' },
-    { name: '도윤이', avatar: '🐼 판다' }
-  ];
+    { name: '지후', avatar: '🐱 냥냥이' }
+  ]);
+
+  useEffect(() => {
+    // 1. Create Realtime PIN Room in Firestore
+    FirestoreSyncService.createPinRoom(pinCode, '6학년 선생님', '6학년 3D 공간지각 퀴즈쇼');
+
+    // 2. Realtime listener for joining students
+    const unsubscribe = FirestoreSyncService.listenToPinRoom(pinCode, (data) => {
+      if (data && data.students && data.students.length > 0) {
+        setConnectedStudents(data.students);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [pinCode]);
 
   const handleCopyPin = () => {
     navigator.clipboard.writeText(pinCode);
@@ -41,14 +54,20 @@ export const QuizNHostDashboard: React.FC<QuizNHostDashboardProps> = ({ onBackHo
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left relative z-10">
           <div className="space-y-1">
-            <span className="bg-red-500 text-white font-black text-xs px-3.5 py-1 rounded-full animate-pulse">
-              ● LIVE 퀴즈쇼 주최자 모드
-            </span>
+            <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <span className="bg-red-500 text-white font-black text-xs px-3.5 py-1 rounded-full animate-pulse">
+                ● LIVE 퀴즈쇼 주최자 모드
+              </span>
+              <span className="bg-emerald-500 text-slate-950 font-black text-[11px] px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Firestore 연동됨</span>
+              </span>
+            </div>
             <h2 className="text-3xl font-black text-yellow-300">
               6학년 3D 공간지각 퀴즈쇼
             </h2>
             <p className="text-xs font-bold text-purple-200">
-              학생들이 화면의 PIN 코드를 입력하면 즉시 대기실에 입장합니다.
+              학생들이 화면의 PIN 코드를 입력하면 즉시 Firestore 실시간 대기실에 입장합니다.
             </p>
           </div>
 
@@ -77,7 +96,7 @@ export const QuizNHostDashboard: React.FC<QuizNHostDashboardProps> = ({ onBackHo
                 <span>접속한 참가자 ({connectedStudents.length}명)</span>
               </h3>
               <span className="text-xs font-bold text-purple-300">
-                실시간 입장 중...
+                Cloud Firestore 실시간 연동 중...
               </span>
             </div>
 

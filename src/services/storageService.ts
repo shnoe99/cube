@@ -1,4 +1,5 @@
 import { UserProfile } from '../types';
+import { FirestoreSyncService } from './firestoreSync';
 
 const STORAGE_KEY = 'cube_master_user_profile_v2';
 
@@ -38,6 +39,8 @@ export const StorageService = {
   saveUserProfile: (profile: UserProfile): void => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      // Background auto-sync to Cloud Firestore
+      FirestoreSyncService.syncUserProfile(profile).catch(() => {});
     } catch (e) {
       console.warn('LocalStorage save error', e);
     }
